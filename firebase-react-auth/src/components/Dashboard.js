@@ -4,10 +4,12 @@ import phone from "../images/phone.png"
 import watch from "../images/watch.png"
 import pods from "../images/pods.png"
 
-import { connect } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { setPhoneBattery, setWatchBattery, setPodsBattery } from '../redux/actions';
 
 import { useEffect, useState } from 'react'
+
+import FindMy from './FindMy'
 
 
 const generateRandomStorageValue = () => {
@@ -18,40 +20,37 @@ const generateRandomStorageValue = () => {
   };
 };
 
-const Dashboard = ({ phoneBattery, watchBattery, podsBattery, setPhoneBattery, setWatchBattery, setPodsBattery, isVisible }) => {
+const Dashboard = () => {
   const { currentUser } = useAuth()
 
+  const phoneBattery = useSelector((state) => state.phoneBattery);
+  const watchBattery = useSelector((state) => state.watchBattery);
+  const podsBattery = useSelector((state) => state.podsBattery);
+  const dispatch = useDispatch();
+
   useEffect(() => {
-    // Function to update battery levels every second
     const updateBatteryLevels = () => {
-      // Use Math.max to ensure the battery doesn't go below 0
       const updatedPhoneBattery = Math.max(phoneBattery - 1, 0);
       const updatedWatchBattery = Math.max(watchBattery - 1, 0);
       const updatedPodsBattery = Math.max(podsBattery - 1, 0);
 
-      setPhoneBattery(updatedPhoneBattery);
-      setWatchBattery(updatedWatchBattery);
-      setPodsBattery(updatedPodsBattery);
+      dispatch(setPhoneBattery(updatedPhoneBattery));
+      dispatch(setWatchBattery(updatedWatchBattery));
+      dispatch(setPodsBattery(updatedPodsBattery));
     };
 
-    // Set up interval to update battery levels every second
     const intervalId = setInterval(updateBatteryLevels, 1000);
 
-    // Clear the interval when the component is unmounted
     return () => clearInterval(intervalId);
-  }, [phoneBattery, watchBattery, podsBattery, setPhoneBattery, setWatchBattery, setPodsBattery]);
+  }, [phoneBattery, watchBattery, podsBattery, dispatch]);
 
   const [storageValues] = useState(generateRandomStorageValue());
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
     <>
-      <div className='mb-5' style={{ textAlign: 'center' }}>
+      <div className='mt-5 mb-5' style={{ textAlign: 'center' }}>
         <h2><strong>Welcome, {currentUser.email.split('@')[0]}!</strong></h2>
-        <h5>Your devices</h5>
+        <h5 className='mt-3'>Your devices</h5>
       </div>
       <div className="d-flex justify-content-around" style={{ width: '1000px', margin: '0 -300px' }}>
         <Card style={{ width: '18rem' }}>
@@ -111,21 +110,10 @@ const Dashboard = ({ phoneBattery, watchBattery, podsBattery, setPhoneBattery, s
           </ListGroup>
         </Card>
         </div>
+        <FindMy />
     </>
     
   );
 }
 
-const mapStateToProps = (state) => ({
-  phoneBattery: state.phoneBattery,
-  watchBattery: state.watchBattery,
-  podsBattery: state.podsBattery,
-});
-
-const mapDispatchToProps = {
-  setPhoneBattery,
-  setWatchBattery,
-  setPodsBattery,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);
+export default Dashboard;

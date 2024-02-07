@@ -10,7 +10,7 @@ export default function NavbarComponent() {
           <Navbar.Brand href="/">DeviceSync</Navbar.Brand>
           <Nav className="me-auto">
             <Nav.Link href="/">Devices</Nav.Link>
-            <Nav.Link href="/findmy">Find My</Nav.Link>
+            {/* <Nav.Link href="/findmy">Find My</Nav.Link> */}
             <Nav.Link href="/profile">Profile</Nav.Link>
           </Nav>
         </Container>
