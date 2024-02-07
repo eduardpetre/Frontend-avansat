@@ -4,12 +4,48 @@ import phone from "../images/phone.png"
 import watch from "../images/watch.png"
 import pods from "../images/pods.png"
 
+import { connect } from 'react-redux';
+import { setPhoneBattery, setWatchBattery, setPodsBattery } from '../redux/actions';
 
-export default function Dashboard() {
+import { useEffect, useState } from 'react'
+
+
+const generateRandomStorageValue = () => {
+  return {
+    success: Math.floor(Math.random() * 21) + 30,
+    warning: Math.floor(Math.random() * 21) + 10,
+    danger: Math.floor(Math.random() * 16) + 5,
+  };
+};
+
+const Dashboard = ({ phoneBattery, watchBattery, podsBattery, setPhoneBattery, setWatchBattery, setPodsBattery, isVisible }) => {
   const { currentUser } = useAuth()
-  const phoneBattery = Math.floor(Math.random() * 101)
-  const podsBattery = Math.floor(Math.random() * 101)
 
+  useEffect(() => {
+    // Function to update battery levels every second
+    const updateBatteryLevels = () => {
+      // Use Math.max to ensure the battery doesn't go below 0
+      const updatedPhoneBattery = Math.max(phoneBattery - 1, 0);
+      const updatedWatchBattery = Math.max(watchBattery - 1, 0);
+      const updatedPodsBattery = Math.max(podsBattery - 1, 0);
+
+      setPhoneBattery(updatedPhoneBattery);
+      setWatchBattery(updatedWatchBattery);
+      setPodsBattery(updatedPodsBattery);
+    };
+
+    // Set up interval to update battery levels every second
+    const intervalId = setInterval(updateBatteryLevels, 1000);
+
+    // Clear the interval when the component is unmounted
+    return () => clearInterval(intervalId);
+  }, [phoneBattery, watchBattery, podsBattery, setPhoneBattery, setWatchBattery, setPodsBattery]);
+
+  const [storageValues] = useState(generateRandomStorageValue());
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <>
@@ -35,9 +71,9 @@ export default function Dashboard() {
             <ListGroup.Item>
               Storage
               <ProgressBar>
-                <ProgressBar variant="success" now={Math.floor(Math.random() * 21) + 30} key={1} />
-                <ProgressBar variant="warning" now={Math.floor(Math.random() * 21) + 10} key={2} />
-                <ProgressBar variant="danger" now={Math.floor(Math.random() * 16) + 5} key={3} />
+                <ProgressBar variant="success" now={storageValues.success} key={1} />
+                <ProgressBar variant="warning" now={storageValues.warning} key={2} />
+                <ProgressBar variant="danger" now={storageValues.danger} key={3} />
               </ProgressBar>
             </ListGroup.Item>
           </ListGroup>
@@ -52,9 +88,9 @@ export default function Dashboard() {
             </Card.Text>
           </Card.Body>
           <ListGroup className="list-group-flush">
-            <ListGroup.Item>Battery<ProgressBar now={0} label={`${0}%`} /></ListGroup.Item>
+            <ListGroup.Item>Battery<ProgressBar now={watchBattery} label={`${watchBattery}%`} /></ListGroup.Item>
             <ListGroup.Item>
-              <div>Status: <span style={{ color: 'red' }}>● Disconnected</span></div>
+              <div>Status: <span style={{ color: watchBattery === 0 ? 'red' : 'black' }}>{watchBattery === 0 ? '● Disconnected' : '● Connected'}</span></div>
             </ListGroup.Item>
           </ListGroup>
         </Card>
@@ -70,7 +106,7 @@ export default function Dashboard() {
           <ListGroup className="list-group-flush">
             <ListGroup.Item>Battery<ProgressBar now={podsBattery} label={`${podsBattery}%`} /></ListGroup.Item>
             <ListGroup.Item>
-              <div>Status: <span style={{ color: 'green' }}>● Connected</span></div>
+              <div>Status: <span style={{ color: podsBattery === 0 ? 'red' : 'black' }}>{podsBattery === 0 ? '● Disconnected' : '● Connected'}</span></div>
             </ListGroup.Item>
           </ListGroup>
         </Card>
@@ -79,3 +115,17 @@ export default function Dashboard() {
     
   );
 }
+
+const mapStateToProps = (state) => ({
+  phoneBattery: state.phoneBattery,
+  watchBattery: state.watchBattery,
+  podsBattery: state.podsBattery,
+});
+
+const mapDispatchToProps = {
+  setPhoneBattery,
+  setWatchBattery,
+  setPodsBattery,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);

@@ -4,14 +4,44 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const Map = () => {
+import { connect } from 'react-redux';
+
+
+const generateRandomLocation = (baseLocation) => {
+  const radius = 0.01;
+  const randomLat = baseLocation[0] + (Math.random() - 0.5) * radius * 2;
+  const randomLng = baseLocation[1] + (Math.random() - 0.5) * radius * 2;
+  return [randomLat, randomLng];
+};
+
+const generateRandomLocations = (baseLocation) => {
+  return {
+    phoneLocation : generateRandomLocation(baseLocation),
+    watchLocation : generateRandomLocation(baseLocation),
+    podsLocation : generateRandomLocation(baseLocation),
+  } 
+}
+
+const Map = ({ phoneBattery, watchBattery, podsBattery }) => {
+  const [renderCounter, setRenderCounter] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setRenderCounter((prevCounter) => prevCounter + 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [phoneBattery, watchBattery, podsBattery, renderCounter]);
+  
   const [userLocation, setUserLocation] = useState([0, 0]);
+  const [devicesLocations, setDevicesLocations] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUserLocation([position.coords.latitude, position.coords.longitude]);
+        setDevicesLocations(generateRandomLocations([position.coords.latitude, position.coords.longitude]));
         setLoading(false);
       },
       (error) => {
@@ -20,13 +50,6 @@ const Map = () => {
       }
     );
   }, []);
-
-  const generateRandomLocation = (baseLocation) => {
-    const radius = 0.01;
-    const randomLat = baseLocation[0] + (Math.random() - 0.5) * radius * 2;
-    const randomLng = baseLocation[1] + (Math.random() - 0.5) * radius * 2;
-    return [randomLat, randomLng];
-  };
 
   const blueIcon = new L.Icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
@@ -60,14 +83,32 @@ const Map = () => {
           <Marker position={userLocation} icon={redIcon}>
             <Popup>Your position</Popup>
           </Marker>
-          <Marker position={generateRandomLocation(userLocation)} icon={blueIcon}>
-            <Popup>iPhone</Popup>
+          <Marker position={devicesLocations.phoneLocation} icon={blueIcon}>
+            <Popup>
+              {phoneBattery === 0 ? (
+                "iPhone - Last seen"
+              ) : (
+                `iPhone - Battery: ${phoneBattery}%`
+              )}
+            </Popup>
           </Marker>
-          <Marker position={generateRandomLocation(userLocation)} icon={blueIcon}>
-            <Popup>Apple Watch</Popup>
+          <Marker position={devicesLocations.watchLocation} icon={blueIcon}>
+            <Popup>
+              {watchBattery === 0 ? (
+                "Apple Watch - Last seen"
+              ) : (
+                `Apple Watch - Battery: ${watchBattery}%`
+              )}
+            </Popup>
           </Marker>
-          <Marker position={generateRandomLocation(userLocation)} icon={blueIcon}>
-            <Popup>AirPods</Popup>
+          <Marker position={devicesLocations.podsLocation} icon={blueIcon}>
+            <Popup>
+              {podsBattery === 0 ? (
+                "AirPods - Last seen"
+              ) : (
+                `AirPods - Battery: ${podsBattery}%`
+              )}
+            </Popup>
           </Marker>
         </MapContainer>
       )}
@@ -75,4 +116,10 @@ const Map = () => {
   );
 };
 
-export default Map;
+const mapStateToProps = (state) => ({
+  phoneBattery: state.phoneBattery,
+  watchBattery: state.watchBattery,
+  podsBattery: state.podsBattery
+});
+
+export default connect(mapStateToProps)(Map);

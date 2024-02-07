@@ -24,13 +24,13 @@ function App() {
           <Router>
             <AuthProvider>
               <Routes>
-                <Route exact path="/" element={<PrivateRoute><Dashboard/></PrivateRoute>}/>
+                <Route exact path="/" element={<PrivateRoute><Dashboard isVisible={true}/></PrivateRoute>}/>
                 <Route path="/signup" element={<Signup/>} />
                 <Route path="/login" element={<Login/>} />
                 <Route path="/forgot-password" element={<ForgotPassword/>} />
                 <Route path="/profile" element={<PrivateRoute><Profile/></PrivateRoute>}/>
                 <Route path="/update-profile" element={<PrivateRoute><UpdateProfile/></PrivateRoute>}/>
-                <Route path="/findmy" element={<PrivateRoute><FindMy/></PrivateRoute>}/>
+                <Route path="/findmy" element={<PrivateRoute><Dashboard isVisible={false} /><FindMy/></PrivateRoute>}/>
               </Routes>
             </AuthProvider>
           </Router>
